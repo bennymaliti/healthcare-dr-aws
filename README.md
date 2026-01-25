@@ -8,7 +8,7 @@ A production-grade disaster recovery and business continuity solution for health
 
 ## 🏗️ Architecture Overview
 
-```mermaid
+```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                              DISASTER RECOVERY ARCHITECTURE                              │
 │                                  Pilot Light Strategy                                    │
