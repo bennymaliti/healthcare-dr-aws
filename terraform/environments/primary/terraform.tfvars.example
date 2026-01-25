@@ -1,0 +1,31 @@
+# -----------------------------------------------------------------------------
+# Healthcare DR - Primary Region Configuration
+# Copy to terraform.tfvars and update values
+# -----------------------------------------------------------------------------
+
+project_name     = "healthcare-dr"
+environment      = "primary"
+aws_region       = "eu-west-2"
+secondary_region = "eu-west-1"
+
+# VPC
+vpc_cidr = "10.0.0.0/16"
+
+# Aurora
+aurora_engine_version = "8.0.mysql_aurora.3.04.0"
+aurora_instance_class = "db.r6g.large"
+aurora_instance_count = 2
+database_name         = "healthcare"
+database_username     = "admin"
+# database_password   = ""  # Leave empty to auto-generate (recommended)
+                            # Password will be stored in AWS Secrets Manager
+
+# Cross-Region Replication (populate after deploying secondary)
+enable_replication         = true
+secondary_data_bucket_arn  = ""  # Get from secondary terraform output
+secondary_data_bucket_id   = ""  # Get from secondary terraform output
+secondary_kms_key_arn      = ""  # Get from secondary terraform output
+secondary_backup_vault_arn = ""  # Get from secondary terraform output
+
+# Alerting
+alert_email = ""  # Your email for alerts

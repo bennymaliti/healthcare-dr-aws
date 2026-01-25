@@ -1,0 +1,89 @@
+---
+title: Healthcare DR Architecture - Pilot Light Strategy
+---
+flowchart TB
+    subgraph Internet["Internet"]
+        Users[("Users")]
+    end
+    
+    subgraph Route53["AWS Route 53"]
+        DNS["DNS Failover\nHealth Checks"]
+    end
+    
+    Users --> DNS
+    
+    subgraph Primary["Primary Region - eu-west-2 London"]
+        subgraph PrimaryVPC["VPC 10.0.0.0/16"]
+            subgraph PrimaryPublic["Public Subnets"]
+                PALB["Application\nLoad Balancer"]
+                PNAT["NAT Gateways"]
+            end
+            
+            subgraph PrimaryPrivate["Private Subnets"]
+                PECS["ECS Fargate\nActive"]
+            end
+            
+            subgraph PrimaryDB["Database Subnets"]
+                PAurora[("Aurora MySQL\nPrimary Writer")]
+            end
+        end
+        
+        subgraph PrimaryStorage["Storage"]
+            PS3["S3 Bucket\nHealthcare Data"]
+            PBackup["AWS Backup\nVault"]
+        end
+        
+        PCW["CloudWatch"]
+    end
+    
+    subgraph Secondary["Secondary Region - eu-west-1 Ireland"]
+        subgraph SecondaryVPC["VPC 10.1.0.0/16"]
+            subgraph SecondaryPublic["Public Subnets"]
+                SALB["Application\nLoad Balancer"]
+                SNAT["NAT Gateway"]
+            end
+            
+            subgraph SecondaryPrivate["Private Subnets"]
+                SECS["ECS Fargate\nScaled Down"]
+            end
+            
+            subgraph SecondaryDB["Database Subnets"]
+                SAurora[("Aurora MySQL\nRead Replica")]
+            end
+        end
+        
+        subgraph SecondaryStorage["Storage"]
+            SS3["S3 Bucket\nReplica"]
+            SBackup["AWS Backup\nVault Copy"]
+        end
+        
+        SCW["CloudWatch"]
+    end
+    
+    DNS -->|Active| PALB
+    DNS -.->|Standby| SALB
+    
+    PALB --> PECS
+    PECS --> PAurora
+    PECS --> PS3
+    
+    SALB --> SECS
+    SECS --> SAurora
+    SECS --> SS3
+    
+    PAurora ==>|Cross-Region Replication| SAurora
+    PS3 ==>|S3 CRR| SS3
+    PBackup ==>|Backup Copy| SBackup
+    
+    PCW --> Primary
+    SCW --> Secondary
+
+    classDef primary fill:#2563eb,stroke:#1d4ed8,color:#fff
+    classDef secondary fill:#6b7280,stroke:#4b5563,color:#fff
+    classDef storage fill:#059669,stroke:#047857,color:#fff
+    classDef network fill:#7c3aed,stroke:#6d28d9,color:#fff
+    
+    class PALB,PECS,PAurora primary
+    class SALB,SECS,SAurora secondary
+    class PS3,SS3,PBackup,SBackup storage
+    class DNS,PNAT,SNAT network

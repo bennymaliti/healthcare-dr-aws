@@ -1,0 +1,23 @@
+# -----------------------------------------------------------------------------
+# Healthcare DR - Secondary Region Configuration
+# Copy to terraform.tfvars and update values
+# Deploy this FIRST before primary (creates destination resources)
+# -----------------------------------------------------------------------------
+
+project_name   = "healthcare-dr"
+environment    = "secondary"
+aws_region     = "eu-west-1"
+primary_region = "eu-west-2"
+
+# VPC (different CIDR to avoid conflicts)
+vpc_cidr = "10.1.0.0/16"
+
+# Aurora
+aurora_engine_version = "8.0.mysql_aurora.3.04.0"
+aurora_instance_class = "db.r6g.large"
+
+# Cross-Region Replication (populate after deploying primary)
+primary_rds_cluster_arn = ""  # Get from primary terraform output
+
+# Alerting
+alert_email = ""  # Your email for alerts

@@ -1,0 +1,11 @@
+# -----------------------------------------------------------------------------
+# Terraform Backend Configuration
+# Copy to backend.hcl and update with your values
+# Initialize with: terraform init -backend-config=backend.hcl
+# -----------------------------------------------------------------------------
+
+bucket         = "your-terraform-state-bucket"
+key            = "healthcare-dr/primary/terraform.tfstate"
+region         = "eu-west-2"
+encrypt        = true
+dynamodb_table = "terraform-state-lock"
