@@ -1,0 +1,143 @@
+name: DR Validation
+
+on:
+  schedule:
+    # Run weekly on Sunday at 2am UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of DR test'
+        required: true
+        default: 'health-check'
+        type: choice
+        options:
+          - health-check
+          - replication-test
+          - full-simulation
+
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+
+env:
+  AWS_REGION: 'eu-west-2'
+
+jobs:
+  # ------------------------------------------------------
+  # Health Check
+  # ------------------------------------------------------
+  health-check:
+    name: DR Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup DR Config
+        run: |
+          cat > scripts/dr-config.env << EOF
+          export DR_PRIMARY_REGION="eu-west-2"
+          export DR_SECONDARY_REGION="eu-west-1"
+          export DR_PROJECT_NAME="${{ secrets.PROJECT_NAME || 'healthcare-dr' }}"
+          EOF
+
+      - name: Run Health Check
+        id: health-check
+        run: |
+          chmod +x scripts/health-check.sh
+          ./scripts/health-check.sh 2>&1 | tee health-check-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-check-results
+          path: health-check-output.txt
+
+      - name: Create Issue on Failure
+        if: steps.health-check.outputs.exit_code != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('health-check-output.txt', 'utf8');
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 DR Health Check Failed',
+              body: `## DR Health Check Failed\n\n**Date**: ${new Date().toISOString()}\n\n### Output\n\`\`\`\n${output}\n\`\`\`\n\n### Action Required\nPlease investigate and resolve DR readiness issues.`,
+              labels: ['dr-alert', 'high-priority']
+            });
+
+  # ------------------------------------------------------
+  # Replication Test
+  # ------------------------------------------------------
+  replication-test:
+    name: Replication Validation
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: github.event.inputs.test_type == 'replication-test' || github.event.inputs.test_type == 'full-simulation' || github.event_name == 'schedule'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup DR Config
+        run: |
+          cat > scripts/dr-config.env << EOF
+          export DR_PRIMARY_REGION="eu-west-2"
+          export DR_SECONDARY_REGION="eu-west-1"
+          export DR_PROJECT_NAME="${{ secrets.PROJECT_NAME || 'healthcare-dr' }}"
+          EOF
+
+      - name: Run Replication Test
+        run: |
+          chmod +x tests/dr-validation/test_replication.sh
+          ./tests/dr-validation/test_replication.sh
+
+  # ------------------------------------------------------
+  # Generate Report
+  # ------------------------------------------------------
+  report:
+    name: Generate DR Report
+    runs-on: ubuntu-latest
+    needs: [health-check, replication-test]
+    if: always()
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate Report
+        run: |
+          echo "# DR Validation Report" > report.md
+          echo "" >> report.md
+          echo "**Date**: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> report.md
+          echo "**Triggered by**: ${{ github.event_name }}" >> report.md
+          echo "" >> report.md
+          echo "## Results" >> report.md
+          echo "" >> report.md
+          echo "| Test | Status |" >> report.md
+          echo "|------|--------|" >> report.md
+          echo "| Health Check | ${{ needs.health-check.result }} |" >> report.md
+          echo "| Replication Test | ${{ needs.replication-test.result }} |" >> report.md
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dr-report
+          path: report.md

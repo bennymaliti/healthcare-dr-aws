@@ -29,3 +29,32 @@ secondary_backup_vault_arn = ""  # Get from secondary terraform output
 
 # Alerting
 alert_email = ""  # Your email for alerts
+
+# -----------------------------------------------------------------------------
+# ECS - Containerized Application
+# -----------------------------------------------------------------------------
+enable_ecs        = false  # Set to true to deploy containerized app
+certificate_arn   = ""     # ACM certificate ARN for HTTPS (required if enable_ecs=true)
+ecs_desired_count = 2
+
+# -----------------------------------------------------------------------------
+# WAF - Web Application Firewall
+# -----------------------------------------------------------------------------
+enable_waf            = false  # Set to true to enable WAF
+waf_rate_limit        = 2000   # Requests per 5 minutes per IP
+waf_blocked_countries = []     # e.g., ["CN", "RU"]
+
+# -----------------------------------------------------------------------------
+# GuardDuty - Threat Detection
+# -----------------------------------------------------------------------------
+enable_guardduty           = true   # Recommended: always enable
+guardduty_auto_remediation = false  # Set to true for automatic threat response
+
+# -----------------------------------------------------------------------------
+# Cost Monitoring
+# -----------------------------------------------------------------------------
+enable_cost_monitoring     = true
+monthly_budget_limit       = "500"  # USD
+rds_budget_limit           = "200"  # USD
+compute_budget_limit       = "100"  # USD
+data_transfer_budget_limit = "50"   # USD

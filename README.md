@@ -8,10 +8,11 @@ A production-grade disaster recovery and business continuity solution for health
 
 ## 🏗️ Architecture Overview
 
-```
+![DR Architecture](diagrams/architecture-diagram.png)
+
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                              DISASTER RECOVERY ARCHITECTURE                              │
-│                                  Pilot Light Strategy                                    │
+│                              DISASTER RECOVERY ARCHITECTURE                             │
+│                                  Pilot Light Strategy                                   │
 │                          RPO: 1 hour | RTO: 15-30 minutes                               │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 
@@ -61,6 +62,7 @@ A production-grade disaster recovery and business continuity solution for health
 │  │ AWS Backup Vault                 │──┼─────┼──│ AWS Backup Vault (Copy)          │  │
 │  └──────────────────────────────────┘  │     │  └──────────────────────────────────┘  │
 └────────────────────────────────────────┘     └────────────────────────────────────────┘
+
 ```
 
 ## 🎯 Key Outcomes
@@ -74,62 +76,47 @@ A production-grade disaster recovery and business continuity solution for health
 
 ## 📁 Project Structure
 
-```mermaid
-healthcare-dr-project/
+healthcare-app-disaster-recovery/
 ├── README.md
 ├── LICENSE
 ├── .gitignore
+├── .github/
+│   └── workflows/
+│       ├── terraform.yml                 # Terraform CI/CD
+│       ├── container.yml                 # Container build & deploy
+│       └── dr-validation.yml             # DR testing automation
+├── application/
+│   ├── package.json
+│   ├── src/
+│   │   └── server.js                     # Node.js healthcare app
+│   └── docker/
+│       └── Dockerfile                    # Multi-stage container build
 ├── terraform/
 │   ├── modules/
 │   │   ├── vpc/                          # Multi-AZ VPC module
-│   │   │   ├── main.tf
-│   │   │   ├── variables.tf
-│   │   │   └── outputs.tf
 │   │   ├── rds/                          # Aurora MySQL module
-│   │   │   ├── main.tf
-│   │   │   ├── variables.tf
-│   │   │   └── outputs.tf
 │   │   ├── s3-replication/               # S3 with CRR module
-│   │   │   ├── main.tf
-│   │   │   ├── variables.tf
-│   │   │   └── outputs.tf
 │   │   ├── backup/                       # AWS Backup module
-│   │   │   ├── main.tf
-│   │   │   ├── variables.tf
-│   │   │   └── outputs.tf
 │   │   ├── route53/                      # DNS failover module
-│   │   │   ├── main.tf
-│   │   │   ├── variables.tf
-│   │   │   └── outputs.tf
+│   │   ├── ecs/                          # ECS Fargate module
+│   │   ├── waf/                          # AWS WAF module
+│   │   ├── guardduty/                    # Threat detection module
+│   │   ├── cost-monitoring/              # Budget & cost alerts
 │   │   └── cloudformation-stacksets/     # DR templates
-│   │       ├── main.tf
-│   │       ├── variables.tf
-│   │       └── outputs.tf
 │   └── environments/
 │       ├── primary/                      # eu-west-2 (London)
-│       │   ├── main.tf
-│       │   ├── variables.tf
-│       │   ├── outputs.tf
-│       │   ├── providers.tf
-│       │   └── terraform.tfvars.example
 │       └── secondary/                    # eu-west-1 (Ireland)
-│           ├── main.tf
-│           ├── variables.tf
-│           ├── outputs.tf
-│           ├── providers.tf
-│           └── terraform.tfvars.example
 ├── scripts/
 │   ├── failover.sh                       # Execute DR failover
 │   ├── failback.sh                       # Return to primary
 │   ├── health-check.sh                   # Validate DR readiness
-│   └── dr-test.sh                        # DR drill automation
+│   ├── dr-test.sh                        # DR drill automation
+│   └── dr-config.env.example             # Script configuration
 ├── docs/
 │   ├── RUNBOOK.md                        # Operational procedures
 │   ├── RISK_ASSESSMENT.md                # Risk analysis
 │   ├── COMPLIANCE.md                     # Healthcare compliance
-│   ├── PORTFOLIO_GUIDE.md                # Portfolio documentation
-│   └── images/
-│       └── architecture-diagram.png
+│   ├── GITHUB_ACTIONS_SETUP.md           # CI/CD setup guide
 └── tests/
     └── dr-validation/
         ├── test_failover.sh              # Failover test
@@ -202,6 +189,85 @@ cd ../../../scripts
 - [Risk Assessment](docs/RISK_ASSESSMENT.md)
 - [Compliance Guide](docs/COMPLIANCE.md)
 - [Portfolio Guide](docs/PORTFOLIO_GUIDE.md)
+- [GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)
+
+## 🆕 Enhanced Features
+
+### 1. GitHub Actions CI/CD
+
+Automated pipelines for infrastructure and application deployment:
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `terraform.yml` | Push/PR to main | Validate, scan, plan, and apply Terraform |
+| `container.yml` | Push to main | Build, scan, and deploy containers |
+| `dr-validation.yml` | Weekly/Manual | Automated DR health checks |
+
+**Features:**
+
+- Terraform format and validation checks
+- Security scanning with tfsec and Checkov
+- Container vulnerability scanning with Trivy
+- OIDC authentication (no stored credentials)
+- Environment-based deployments with approvals
+
+### 2. Containerized Application Layer
+
+Production-ready ECS Fargate deployment:
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│     ALB     │────▶│ ECS Fargate │────▶│   Aurora    │
+│  (HTTPS)    │     │  (Node.js)  │     │   MySQL     │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+**Features:**
+
+- Multi-stage Docker builds
+- ECR with vulnerability scanning
+- Auto-scaling (CPU/Memory based)
+- Health checks and circuit breakers
+- Secrets Manager integration
+
+### 3. AWS WAF Protection
+
+Web Application Firewall with managed rules:
+
+| Rule Set | Protection |
+|----------|------------|
+| Common Rule Set | OWASP Top 10 |
+| Known Bad Inputs | Log4j, etc. |
+| SQL Injection | SQLi attacks |
+| Linux OS | OS-specific attacks |
+| Rate Limiting | DDoS protection |
+
+### 4. GuardDuty Threat Detection
+
+Intelligent threat detection:
+
+- **S3 Protection**: Detects suspicious data access
+- **Malware Protection**: Scans EBS volumes
+- **Event Notifications**: SNS alerts for findings
+- **Auto-Remediation**: Optional Lambda response
+
+### 5. Cost Monitoring Dashboard
+
+Budget alerts and cost visibility:
+
+| Budget | Default Limit | Alerts |
+|--------|---------------|--------|
+| Monthly Total | $500 | 50%, 80%, 100% |
+| RDS | $200 | 80% |
+| Compute | $100 | 80% |
+| Data Transfer | $50 | 80% |
+
+**Features:**
+
+- CloudWatch cost dashboard
+- Cost anomaly detection
+- Email notifications
+- Service-level budgets
 
 ## 👤 Author
 

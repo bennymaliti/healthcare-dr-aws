@@ -100,3 +100,93 @@ variable "alert_email" {
   type        = string
   default     = ""
 }
+
+# -----------------------------------------------------------------------------
+# ECS Configuration
+# -----------------------------------------------------------------------------
+variable "enable_ecs" {
+  description = "Enable ECS containerized application"
+  type        = bool
+  default     = false
+}
+
+variable "certificate_arn" {
+  description = "ACM certificate ARN for HTTPS"
+  type        = string
+  default     = ""
+}
+
+variable "ecs_desired_count" {
+  description = "Desired number of ECS tasks"
+  type        = number
+  default     = 2
+}
+
+# -----------------------------------------------------------------------------
+# WAF Configuration
+# -----------------------------------------------------------------------------
+variable "enable_waf" {
+  description = "Enable AWS WAF"
+  type        = bool
+  default     = false
+}
+
+variable "waf_rate_limit" {
+  description = "WAF rate limit per 5 minutes per IP"
+  type        = number
+  default     = 2000
+}
+
+variable "waf_blocked_countries" {
+  description = "List of country codes to block"
+  type        = list(string)
+  default     = []
+}
+
+# -----------------------------------------------------------------------------
+# GuardDuty Configuration
+# -----------------------------------------------------------------------------
+variable "enable_guardduty" {
+  description = "Enable AWS GuardDuty"
+  type        = bool
+  default     = true
+}
+
+variable "guardduty_auto_remediation" {
+  description = "Enable GuardDuty auto-remediation"
+  type        = bool
+  default     = false
+}
+
+# -----------------------------------------------------------------------------
+# Cost Monitoring Configuration
+# -----------------------------------------------------------------------------
+variable "enable_cost_monitoring" {
+  description = "Enable cost monitoring and budgets"
+  type        = bool
+  default     = true
+}
+
+variable "monthly_budget_limit" {
+  description = "Monthly budget limit in USD"
+  type        = string
+  default     = "500"
+}
+
+variable "rds_budget_limit" {
+  description = "RDS monthly budget limit in USD"
+  type        = string
+  default     = "200"
+}
+
+variable "compute_budget_limit" {
+  description = "Compute monthly budget limit in USD"
+  type        = string
+  default     = "100"
+}
+
+variable "data_transfer_budget_limit" {
+  description = "Data transfer monthly budget limit in USD"
+  type        = string
+  default     = "50"
+}

@@ -21,3 +21,15 @@ primary_rds_cluster_arn = ""  # Get from primary terraform output
 
 # Alerting
 alert_email = ""  # Your email for alerts
+
+# -----------------------------------------------------------------------------
+# ECS - Containerized Application (Standby)
+# -----------------------------------------------------------------------------
+enable_ecs            = false  # Set to true if using ECS
+certificate_arn       = ""     # ACM certificate ARN (must be in eu-west-1)
+primary_db_secret_arn = ""     # Get from primary terraform output
+
+# -----------------------------------------------------------------------------
+# GuardDuty - Threat Detection
+# -----------------------------------------------------------------------------
+enable_guardduty = true  # Recommended: enable in both regions

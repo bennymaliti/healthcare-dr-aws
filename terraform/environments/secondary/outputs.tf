@@ -52,3 +52,29 @@ output "sns_topic_arn" {
   description = "Alerts SNS topic ARN"
   value       = aws_sns_topic.alerts.arn
 }
+
+# -----------------------------------------------------------------------------
+# ECS Outputs
+# -----------------------------------------------------------------------------
+output "ecs_cluster_arn" {
+  description = "ECS cluster ARN"
+  value       = var.enable_ecs ? module.ecs[0].cluster_arn : null
+}
+
+output "alb_dns_name" {
+  description = "ALB DNS name"
+  value       = var.enable_ecs ? module.ecs[0].alb_dns_name : null
+}
+
+output "alb_zone_id" {
+  description = "ALB zone ID"
+  value       = var.enable_ecs ? module.ecs[0].alb_zone_id : null
+}
+
+# -----------------------------------------------------------------------------
+# Security Outputs
+# -----------------------------------------------------------------------------
+output "guardduty_detector_id" {
+  description = "GuardDuty detector ID"
+  value       = var.enable_guardduty ? module.guardduty[0].detector_id : null
+}

@@ -62,3 +62,47 @@ output "account_id" {
   description = "AWS Account ID"
   value       = data.aws_caller_identity.current.account_id
 }
+
+# -----------------------------------------------------------------------------
+# ECS Outputs
+# -----------------------------------------------------------------------------
+output "ecs_cluster_arn" {
+  description = "ECS cluster ARN"
+  value       = var.enable_ecs ? module.ecs[0].cluster_arn : null
+}
+
+output "alb_dns_name" {
+  description = "ALB DNS name"
+  value       = var.enable_ecs ? module.ecs[0].alb_dns_name : null
+}
+
+output "alb_zone_id" {
+  description = "ALB zone ID"
+  value       = var.enable_ecs ? module.ecs[0].alb_zone_id : null
+}
+
+output "ecr_repository_url" {
+  description = "ECR repository URL"
+  value       = var.enable_ecs ? module.ecs[0].ecr_repository_url : null
+}
+
+# -----------------------------------------------------------------------------
+# Security Outputs
+# -----------------------------------------------------------------------------
+output "waf_web_acl_arn" {
+  description = "WAF Web ACL ARN"
+  value       = var.enable_waf ? module.waf[0].web_acl_arn : null
+}
+
+output "guardduty_detector_id" {
+  description = "GuardDuty detector ID"
+  value       = var.enable_guardduty ? module.guardduty[0].detector_id : null
+}
+
+# -----------------------------------------------------------------------------
+# Cost Monitoring Outputs
+# -----------------------------------------------------------------------------
+output "cost_dashboard_arn" {
+  description = "Cost monitoring dashboard ARN"
+  value       = var.enable_cost_monitoring ? module.cost_monitoring[0].dashboard_arn : null
+}

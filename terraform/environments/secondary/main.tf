@@ -167,3 +167,44 @@ resource "aws_cloudwatch_dashboard" "dr_status" {
     ]
   })
 }
+
+# -----------------------------------------------------------------------------
+# ECS - Containerized Application (Standby - Scaled Down)
+# -----------------------------------------------------------------------------
+module "ecs" {
+  count  = var.enable_ecs ? 1 : 0
+  source = "../../modules/ecs"
+
+  project_name        = var.project_name
+  environment         = var.environment
+  vpc_id              = module.vpc.vpc_id
+  public_subnet_ids   = module.vpc.public_subnet_ids
+  private_subnet_ids  = module.vpc.private_subnet_ids
+  kms_key_arn         = module.rds.kms_key_arn
+  db_host             = module.rds.cluster_endpoint
+  db_secret_arn       = var.primary_db_secret_arn
+  data_bucket_arn     = module.healthcare_data_bucket.bucket_arn
+  certificate_arn     = var.certificate_arn
+  desired_count       = 0  # Scaled down for DR standby
+  min_capacity        = 0
+  max_capacity        = 10
+  deletion_protection = false  # Allow deletion in DR region
+
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# GuardDuty - Threat Detection (Both regions should have GuardDuty)
+# -----------------------------------------------------------------------------
+module "guardduty" {
+  count  = var.enable_guardduty ? 1 : 0
+  source = "../../modules/guardduty"
+
+  project_name              = var.project_name
+  environment               = var.environment
+  notification_email        = var.alert_email
+  enable_malware_protection = true
+  enable_auto_remediation   = false
+
+  tags = local.common_tags
+}

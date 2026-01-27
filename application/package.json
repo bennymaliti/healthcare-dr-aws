@@ -1,0 +1,27 @@
+{
+  "name": "healthcare-dr-app",
+  "version": "1.0.0",
+  "description": "Healthcare application with disaster recovery support",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "@aws-sdk/client-secrets-manager": "^3.400.0",
+    "mysql2": "^3.6.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1",
+    "eslint": "^8.50.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Ben",
+  "license": "MIT"
+}

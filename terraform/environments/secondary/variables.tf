@@ -50,3 +50,33 @@ variable "alert_email" {
   type        = string
   default     = ""
 }
+
+# -----------------------------------------------------------------------------
+# ECS Configuration
+# -----------------------------------------------------------------------------
+variable "enable_ecs" {
+  description = "Enable ECS containerized application (standby)"
+  type        = bool
+  default     = false
+}
+
+variable "certificate_arn" {
+  description = "ACM certificate ARN for HTTPS"
+  type        = string
+  default     = ""
+}
+
+variable "primary_db_secret_arn" {
+  description = "Primary region DB secret ARN"
+  type        = string
+  default     = ""
+}
+
+# -----------------------------------------------------------------------------
+# GuardDuty Configuration
+# -----------------------------------------------------------------------------
+variable "enable_guardduty" {
+  description = "Enable AWS GuardDuty"
+  type        = bool
+  default     = true
+}
