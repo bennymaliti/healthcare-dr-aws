@@ -100,6 +100,6 @@ Follow on-screen instructions for manual steps.
 
 | Role | Contact |
 |------|---------|
-| On-Call | ops-team@example.com |
-| DBA | dba@example.com |
-| Security | security@example.com |
+| On-Call | benmaliti@hotmail.com |
+| DBA | benmaliti@hotmail.com |
+| Security | benmaliti@hotmail.com |
