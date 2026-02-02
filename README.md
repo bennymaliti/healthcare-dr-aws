@@ -123,7 +123,6 @@ cd ../../../scripts
 - [Operational Runbook](docs/RUNBOOK.md)
 - [Risk Assessment](docs/RISK_ASSESSMENT.md)
 - [Compliance Guide](docs/COMPLIANCE.md)
-- [Portfolio Guide](docs/PORTFOLIO_GUIDE.md)
 - [GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)
 
 ## 🆕 Enhanced Features
