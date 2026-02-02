@@ -19,7 +19,7 @@
 | SEC-003 | DDoS Attack | 4 | 3 | 12 | AWS Shield | 4 |
 | HUM-001 | Accidental Deletion | 4 | 4 | 16 | Versioning, backups | 4 |
 | HUM-002 | Misconfiguration | 4 | 3 | 12 | IaC, code review | 6 |
-| COM-001 | HIPAA Violation | 2 | 5 | 10 | Encryption, logging | 4 |
+| COM-001 | UK GDPR Violation | 2 | 5 | 10 | Encryption, logging | 4 |
 
 ## Mitigation Summary
 
