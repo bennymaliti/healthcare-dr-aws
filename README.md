@@ -22,7 +22,7 @@ A production-grade disaster recovery and business continuity solution for health
 
 ## 📁 Project Structure
 
-healthcare-app-disaster-recovery/
+healthcare-dr-aws/
 ├── README.md
 ├── LICENSE
 ├── .gitignore
@@ -82,7 +82,7 @@ healthcare-app-disaster-recovery/
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/YOUR_USERNAME/healthcare-dr-aws.git
+git clone https://github.com/bennymaliti/healthcare-dr-aws.git
 cd healthcare-dr-aws
 
 # 2. Configure Scripts
@@ -111,17 +111,6 @@ terraform apply
 cd ../../../scripts
 ./health-check.sh
 ```
-
-### Configuration Files
-
-| File | Purpose | Commit to Git? |
-|------|---------|----------------|
-| `terraform.tfvars.example` | Template for Terraform variables | ✅ Yes |
-| `terraform.tfvars` | Your actual Terraform variables | ❌ No |
-| `backend.hcl.example` | Template for backend config | ✅ Yes |
-| `backend.hcl` | Your actual backend config | ❌ No |
-| `dr-config.env.example` | Template for script config | ✅ Yes |
-| `dr-config.env` | Your actual script config | ❌ No |
 
 ### Security Notes
 
@@ -159,7 +148,7 @@ Automated pipelines for infrastructure and application deployment:
 
 ### 2. Containerized Application Layer
 
-Production-ready ECS Fargate deployment:
+ECS Fargate Deployment:
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
@@ -217,7 +206,7 @@ Budget alerts and cost visibility:
 
 ## 👤 Author
 
-**Ben** - Cloud Engineer
+**Benny Maliti** - Cloud Engineer
 
 ## 📄 License
 
