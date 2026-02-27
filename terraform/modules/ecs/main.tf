@@ -6,7 +6,9 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 locals {
-  name_prefix = "${var.project_name}-${var.environment}"
+  name_prefix     = "${var.project_name}-${var.environment}"
+  # ALB/TG names have a 32-character AWS limit; substr is a no-op when shorter
+  alb_name_prefix = substr("${var.project_name}-${var.environment}", 0, 27)
 }
 
 # -----------------------------------------------------------------------------
@@ -37,12 +39,11 @@ resource "aws_ecr_lifecycle_policy" "app" {
     rules = [
       {
         rulePriority = 1
-        description  = "Keep last 10 images"
+        description  = "Keep last 10 images regardless of tag"
         selection = {
-          tagStatus     = "tagged"
-          tagPrefixList = ["v"]
-          countType     = "imageCountMoreThan"
-          countNumber   = 10
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 10
         }
         action = {
           type = "expire"
@@ -50,12 +51,12 @@ resource "aws_ecr_lifecycle_policy" "app" {
       },
       {
         rulePriority = 2
-        description  = "Remove untagged images after 7 days"
+        description  = "Remove untagged images after 1 day"
         selection = {
           tagStatus   = "untagged"
           countType   = "sinceImagePushed"
           countUnit   = "days"
-          countNumber = 7
+          countNumber = 1
         }
         action = {
           type = "expire"
@@ -192,6 +193,7 @@ resource "aws_iam_role_policy" "ecs_task" {
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${local.name_prefix}"
   retention_in_days = 30
+  kms_key_id        = var.kms_key_arn
 
   tags = var.tags
 }
@@ -213,10 +215,19 @@ resource "aws_security_group" "ecs_tasks" {
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    description = "HTTPS to AWS service endpoints (ECR, Secrets Manager, CloudWatch)"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Database access within VPC"
+    from_port   = var.db_port
+    to_port     = var.db_port
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr_block]
   }
 
   tags = merge(var.tags, {
@@ -261,21 +272,22 @@ resource "aws_security_group" "alb" {
 # Application Load Balancer
 # -----------------------------------------------------------------------------
 resource "aws_lb" "main" {
-  name               = "${local.name_prefix}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = var.public_subnet_ids
+  name                       = "${local.alb_name_prefix}-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.alb.id]
+  subnets                    = var.public_subnet_ids
+  drop_invalid_header_fields = true
 
   enable_deletion_protection = var.deletion_protection
 
   tags = merge(var.tags, {
-    Name = "${local.name_prefix}-alb"
+    Name = "${local.alb_name_prefix}-alb"
   })
 }
 
 resource "aws_lb_target_group" "app" {
-  name        = "${local.name_prefix}-tg"
+  name        = "${local.alb_name_prefix}-tg"
   port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -340,7 +352,7 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([
     {
       name      = "healthcare-app"
-      image     = "${aws_ecr_repository.app.repository_url}:latest"
+      image     = "${aws_ecr_repository.app.repository_url}:${var.image_tag}"
       essential = true
 
       portMappings = [
@@ -399,11 +411,12 @@ resource "aws_ecs_task_definition" "app" {
 # ECS Service
 # -----------------------------------------------------------------------------
 resource "aws_ecs_service" "app" {
-  name            = "healthcare-app"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = var.desired_count
-  launch_type     = "FARGATE"
+  name                 = "healthcare-app"
+  cluster              = aws_ecs_cluster.main.id
+  task_definition      = aws_ecs_task_definition.app.arn
+  desired_count        = var.desired_count
+  launch_type          = "FARGATE"
+  force_new_deployment = true
 
   network_configuration {
     subnets          = var.private_subnet_ids
@@ -415,11 +428,6 @@ resource "aws_ecs_service" "app" {
     target_group_arn = aws_lb_target_group.app.arn
     container_name   = "healthcare-app"
     container_port   = var.container_port
-  }
-
-  deployment_configuration {
-    minimum_healthy_percent = 50
-    maximum_percent         = 200
   }
 
   deployment_circuit_breaker {

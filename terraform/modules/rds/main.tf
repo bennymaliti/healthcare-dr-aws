@@ -2,6 +2,14 @@
 # RDS Aurora MySQL Module - Cross-Region Replication
 # -----------------------------------------------------------------------------
 
+# -----------------------------------------------------------------------------
+# Random Password for Master User
+# -----------------------------------------------------------------------------
+resource "random_password" "master" {
+  count   = var.source_cluster_arn == "" ? 1 : 0
+  length  = 16
+  special = false
+}
 locals {
   is_primary         = var.is_primary_region
   cluster_identifier = "${var.project_name}-${var.environment}-aurora"
@@ -113,6 +121,12 @@ resource "aws_rds_cluster_parameter_group" "aurora" {
     value = "1"
   }
 
+  parameter {
+    name         = "binlog_format"
+    value        = "MIXED"
+    apply_method = "pending-reboot"
+  }
+
   tags = var.tags
 }
 
@@ -185,7 +199,7 @@ resource "aws_rds_cluster_instance" "primary" {
   publicly_accessible          = false
   monitoring_interval          = 60
   monitoring_role_arn          = aws_iam_role.rds_monitoring.arn
-  performance_insights_enabled = true
+  performance_insights_enabled = false
 
   auto_minor_version_upgrade = true
 
@@ -205,7 +219,14 @@ resource "aws_rds_cluster" "secondary" {
   engine_version     = var.engine_version
   engine_mode        = "provisioned"
 
-  replication_source_identifier = var.source_cluster_arn
+  # Only set replication if source exists
+  replication_source_identifier = var.source_cluster_arn != "" ? var.source_cluster_arn : null
+  source_region                 = var.source_cluster_arn != "" ? var.source_region : null
+
+  # Required when NOT a replica (standalone cluster)
+  database_name   = var.source_cluster_arn == "" ? var.database_name : null
+  master_username = var.source_cluster_arn == "" ? var.master_username : null
+  master_password = var.source_cluster_arn == "" ? random_password.master[0].result : null
 
   db_subnet_group_name            = var.db_subnet_group_name
   vpc_security_group_ids          = [aws_security_group.aurora.id]
@@ -215,17 +236,14 @@ resource "aws_rds_cluster" "secondary" {
   kms_key_id        = aws_kms_key.rds.arn
 
   enabled_cloudwatch_logs_exports = ["audit", "error", "slowquery"]
-
-  deletion_protection = var.deletion_protection
-  skip_final_snapshot = true
-
-  source_region = var.source_region
+  deletion_protection             = var.deletion_protection
+  skip_final_snapshot             = true
 
   depends_on = [aws_kms_key.rds]
 
   tags = merge(var.tags, {
     Name = local.cluster_identifier
-    Role = "CrossRegionReplica"
+    Role = var.source_cluster_arn != "" ? "CrossRegionReplica" : "StandaloneSecondary"
   })
 }
 
@@ -248,7 +266,7 @@ resource "aws_rds_cluster_instance" "secondary" {
   publicly_accessible          = false
   monitoring_interval          = 60
   monitoring_role_arn          = aws_iam_role.rds_monitoring.arn
-  performance_insights_enabled = true
+  performance_insights_enabled = false
 
   auto_minor_version_upgrade = true
 

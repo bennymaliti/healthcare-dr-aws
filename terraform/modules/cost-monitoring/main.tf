@@ -315,32 +315,33 @@ EOF
 # -----------------------------------------------------------------------------
 # Cost Anomaly Detection
 # -----------------------------------------------------------------------------
-resource "aws_ce_anomaly_monitor" "main" {
-  name              = "${local.name_prefix}-anomaly-monitor"
-  monitor_type      = "DIMENSIONAL"
-  monitor_dimension = "SERVICE"
-
-  tags = var.tags
-}
-
-resource "aws_ce_anomaly_subscription" "main" {
-  name      = "${local.name_prefix}-anomaly-subscription"
-  frequency = "DAILY"
-
-  monitor_arn_list = [aws_ce_anomaly_monitor.main.arn]
-
-  subscriber {
-    type    = "SNS"
-    address = aws_sns_topic.cost_alerts.arn
-  }
-
-  threshold_expression {
-    dimension {
-      key           = "ANOMALY_TOTAL_IMPACT_ABSOLUTE"
-      values        = [var.anomaly_threshold]
-      match_options = ["GREATER_THAN_OR_EQUAL"]
-    }
-  }
-
-  tags = var.tags
-}
+# resource "aws_ce_anomaly_monitor" "main" {
+#  count = 0 # Disable for now - can be enabled if needed
+#  name              = "${local.name_prefix}-anomaly-monitor"
+#  monitor_type      = "DIMENSIONAL"
+#  monitor_dimension = "SERVICE"
+#
+#  tags = var.tags
+#}
+#
+# resource "aws_ce_anomaly_subscription" "main" {
+#  name      = "${local.name_prefix}-anomaly-subscription"
+#  frequency = "DAILY"
+#
+#  monitor_arn_list = [aws_ce_anomaly_monitor.main.arn]
+#
+#  subscriber {
+#    type    = "SNS"
+#    address = aws_sns_topic.cost_alerts.arn
+#  }
+#
+#  threshold_expression {
+#    dimension {
+#      key           = "ANOMALY_TOTAL_IMPACT_ABSOLUTE"
+#      values        = [var.anomaly_threshold]
+#      match_options = ["GREATER_THAN_OR_EQUAL"]
+#    }
+#  }
+#
+#  tags = var.tags
+#}

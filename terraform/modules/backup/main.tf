@@ -157,7 +157,7 @@ resource "aws_backup_plan" "main" {
 
     lifecycle {
       cold_storage_after = 30
-      delete_after       = 90
+      delete_after       = 120
     }
 
     dynamic "copy_action" {
@@ -166,7 +166,7 @@ resource "aws_backup_plan" "main" {
         destination_vault_arn = var.destination_vault_arn
         lifecycle {
           cold_storage_after = 30
-          delete_after       = 90
+          delete_after       = 120
         }
       }
     }

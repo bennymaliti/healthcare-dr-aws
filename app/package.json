@@ -1,0 +1,15 @@
+{
+  "name": "healthcare-dr-app",
+  "version": "1.0.0",
+  "description": "Healthcare Disaster Recovery Application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "author": "Ben Maliti",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

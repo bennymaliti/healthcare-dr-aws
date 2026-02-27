@@ -123,6 +123,77 @@ resource "aws_sns_topic_subscription" "alerts_email" {
 }
 
 # -----------------------------------------------------------------------------
+# ECS - Containerized Application
+# -----------------------------------------------------------------------------
+module "ecs" {
+  count  = var.enable_ecs ? 1 : 0
+  source = "../../modules/ecs"
+
+  project_name        = var.project_name
+  environment         = var.environment
+  vpc_id              = module.vpc.vpc_id
+  vpc_cidr_block      = var.vpc_cidr
+  public_subnet_ids   = module.vpc.public_subnet_ids
+  private_subnet_ids  = module.vpc.private_subnet_ids
+  image_tag           = "latest"
+  kms_key_arn         = module.rds.kms_key_arn
+  db_host             = module.rds.cluster_endpoint
+  db_secret_arn       = module.rds.secrets_manager_arn
+  data_bucket_arn     = module.healthcare_data_bucket.bucket_arn
+  certificate_arn     = var.certificate_arn
+  desired_count       = 2
+  min_capacity        = 2
+  max_capacity        = 10
+  deletion_protection = true
+
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# WAF - Web Application Firewall
+# -----------------------------------------------------------------------------
+module "waf" {
+  count  = var.enable_waf ? 1 : 0
+  source = "../../modules/waf"
+
+  project_name = var.project_name
+  environment  = var.environment
+  alb_arn      = var.enable_ecs ? module.ecs[0].alb_arn : ""
+
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# GuardDuty - Threat Detection
+# -----------------------------------------------------------------------------
+module "guardduty" {
+  count  = var.enable_guardduty ? 1 : 0
+  source = "../../modules/guardduty"
+
+  project_name              = var.project_name
+  environment               = var.environment
+  notification_email        = var.alert_email
+  enable_malware_protection = true
+  enable_auto_remediation   = false
+
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# Cost Monitoring
+# -----------------------------------------------------------------------------
+module "cost_monitoring" {
+  count  = var.enable_cost_monitoring ? 1 : 0
+  source = "../../modules/cost-monitoring"
+
+  project_name         = var.project_name
+  environment          = var.environment
+  monthly_budget_limit = var.monthly_budget_limit
+
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
 # CloudWatch Dashboard
 # -----------------------------------------------------------------------------
 resource "aws_cloudwatch_dashboard" "main" {

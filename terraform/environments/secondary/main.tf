@@ -178,8 +178,10 @@ module "ecs" {
   project_name        = var.project_name
   environment         = var.environment
   vpc_id              = module.vpc.vpc_id
+  vpc_cidr_block      = var.vpc_cidr
   public_subnet_ids   = module.vpc.public_subnet_ids
   private_subnet_ids  = module.vpc.private_subnet_ids
+  image_tag           = "latest"
   kms_key_arn         = module.rds.kms_key_arn
   db_host             = module.rds.cluster_endpoint
   db_secret_arn       = var.primary_db_secret_arn

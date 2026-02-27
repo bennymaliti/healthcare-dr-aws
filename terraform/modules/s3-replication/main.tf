@@ -43,6 +43,21 @@ resource "aws_kms_key" "s3" {
           "kms:DescribeKey"
         ]
         Resource = "*"
+      },
+      {
+        Sid    = "Allow S3 Replication Role"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
       }
     ]
   })
@@ -83,7 +98,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
       kms_master_key_id = aws_kms_key.s3.arn
       sse_algorithm     = "aws:kms"
     }
-    bucket_key_enabled = true
+    bucket_key_enabled = false
   }
 }
 
@@ -95,13 +110,14 @@ resource "aws_s3_bucket_public_access_block" "main" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
-
-resource "aws_s3_bucket_lifecycle_configuration" "main" {
+ resource "aws_s3_bucket_lifecycle_configuration" "main" {
   bucket = aws_s3_bucket.main.id
 
   rule {
     id     = "transition-to-ia"
     status = "Enabled"
+
+    filter {}
 
     transition {
       days          = 90
@@ -121,6 +137,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "main" {
   rule {
     id     = "abort-incomplete-uploads"
     status = "Enabled"
+
+    filter {}
 
     abort_incomplete_multipart_upload {
       days_after_initiation = 7
@@ -184,12 +202,18 @@ resource "aws_iam_role_policy" "replication" {
         Resource = "${var.destination_bucket_arn}/*"
       },
       {
-        Action   = ["kms:Decrypt"]
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ]
         Effect   = "Allow"
         Resource = aws_kms_key.s3.arn
       },
       {
-        Action   = ["kms:Encrypt"]
+        Action = [
+          "kms:Encrypt",
+          "kms:GenerateDataKey"
+        ]
         Effect   = "Allow"
         Resource = var.destination_kms_key_arn
       }

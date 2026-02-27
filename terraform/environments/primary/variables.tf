@@ -170,13 +170,13 @@ variable "enable_cost_monitoring" {
 variable "monthly_budget_limit" {
   description = "Monthly budget limit in USD"
   type        = string
-  default     = "500"
+  default     = "50"
 }
 
 variable "rds_budget_limit" {
   description = "RDS monthly budget limit in USD"
   type        = string
-  default     = "200"
+  default     = "60"
 }
 
 variable "compute_budget_limit" {

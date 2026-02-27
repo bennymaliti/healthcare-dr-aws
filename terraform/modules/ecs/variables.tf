@@ -91,6 +91,22 @@ variable "deletion_protection" {
   default     = true
 }
 
+variable "image_tag" {
+  description = "Container image tag to deploy"
+  type        = string
+}
+
+variable "db_port" {
+  description = "Database port for egress rules"
+  type        = number
+  default     = 5432
+}
+
+variable "vpc_cidr_block" {
+  description = "VPC CIDR block for restricting database egress"
+  type        = string
+}
+
 variable "tags" {
   description = "Tags to apply"
   type        = map(string)

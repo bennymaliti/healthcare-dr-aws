@@ -45,6 +45,12 @@ variable "primary_rds_cluster_arn" {
   type        = string
 }
 
+variable "deletion_protection" {
+  description = "Enable deletion protection for RDS"
+  type        = bool
+  default     = true
+}
+
 variable "alert_email" {
   description = "Email for alerts"
   type        = string

@@ -15,5 +15,5 @@ output "dashboard_arn" {
 
 output "anomaly_monitor_arn" {
   description = "Cost anomaly monitor ARN"
-  value       = aws_ce_anomaly_monitor.main.arn
+  value       = null # Disabled - AWS limit reached. Can be enabled if needed: aws_ce_anomaly_monitor.main.arn
 }
