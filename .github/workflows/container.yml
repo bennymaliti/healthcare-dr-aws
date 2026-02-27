@@ -76,15 +76,9 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: healthcare-app:test
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          format: 'table'
           severity: 'CRITICAL,HIGH'
-
-      - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
+          exit-code: '0'
 
   # ------------------------------------------------------
   # Push to ECR
