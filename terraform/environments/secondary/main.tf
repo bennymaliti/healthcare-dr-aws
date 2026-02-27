@@ -187,10 +187,10 @@ module "ecs" {
   db_secret_arn       = var.primary_db_secret_arn
   data_bucket_arn     = module.healthcare_data_bucket.bucket_arn
   certificate_arn     = var.certificate_arn
-  desired_count       = 0  # Scaled down for DR standby
+  desired_count       = 0 # Scaled down for DR standby
   min_capacity        = 0
   max_capacity        = 10
-  deletion_protection = false  # Allow deletion in DR region
+  deletion_protection = false # Allow deletion in DR region
 
   tags = local.common_tags
 }

@@ -246,7 +246,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 8
         height = 6
         properties = {
-          title   = "Backup Jobs"
+          title = "Backup Jobs"
           metrics = [
             ["AWS/Backup", "NumberOfBackupJobsCompleted", "BackupVaultName", module.backup.vault_name],
             [".", "NumberOfBackupJobsFailed", ".", "."]

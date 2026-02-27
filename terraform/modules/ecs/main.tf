@@ -6,7 +6,7 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 locals {
-  name_prefix     = "${var.project_name}-${var.environment}"
+  name_prefix = "${var.project_name}-${var.environment}"
   # ALB/TG names have a 32-character AWS limit; substr is a no-op when shorter
   alb_name_prefix = substr("${var.project_name}-${var.environment}", 0, 27)
 }

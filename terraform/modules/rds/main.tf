@@ -171,8 +171,8 @@ resource "aws_rds_cluster" "primary" {
 
   enabled_cloudwatch_logs_exports = ["audit", "error", "slowquery"]
 
-  deletion_protection   = var.deletion_protection
-  skip_final_snapshot   = var.skip_final_snapshot
+  deletion_protection       = var.deletion_protection
+  skip_final_snapshot       = var.skip_final_snapshot
   final_snapshot_identifier = var.skip_final_snapshot ? null : "${local.cluster_identifier}-final"
 
   tags = merge(var.tags, {

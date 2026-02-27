@@ -106,12 +106,12 @@ resource "aws_cloudformation_stack_set" "dr_infrastructure" {
       ECSTaskDefinition = {
         Type = "AWS::ECS::TaskDefinition"
         Properties = {
-          Family                   = "${var.project_name}-dr-task"
-          NetworkMode              = "awsvpc"
-          RequiresCompatibilities  = ["FARGATE"]
-          Cpu                      = "256"
-          Memory                   = "512"
-          ExecutionRoleArn         = { "Fn::GetAtt" = ["ECSExecutionRole", "Arn"] }
+          Family                  = "${var.project_name}-dr-task"
+          NetworkMode             = "awsvpc"
+          RequiresCompatibilities = ["FARGATE"]
+          Cpu                     = "256"
+          Memory                  = "512"
+          ExecutionRoleArn        = { "Fn::GetAtt" = ["ECSExecutionRole", "Arn"] }
           ContainerDefinitions = [{
             Name      = "healthcare-app"
             Image     = "nginx:latest"
