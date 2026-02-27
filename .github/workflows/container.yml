@@ -31,9 +31,6 @@ permissions:
   packages: write
 
 jobs:
-  # ------------------------------------------------------
-  # Build and Test
-  # ------------------------------------------------------
   build:
     name: Build Container
     runs-on: ubuntu-latest
@@ -73,16 +70,13 @@ jobs:
           docker run --rm healthcare-app:test npm test || true
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: healthcare-app:test
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '0'
 
-  # ------------------------------------------------------
-  # Push to ECR
-  # ------------------------------------------------------
   push:
     name: Push to ECR
     runs-on: ubuntu-latest
@@ -119,11 +113,8 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/healthcare-app:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
-  # ------------------------------------------------------
-  # Deploy to ECS
-  # ------------------------------------------------------
   deploy:
     name: Deploy to ECS
     runs-on: ubuntu-latest
