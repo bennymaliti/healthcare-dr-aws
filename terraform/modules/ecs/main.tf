@@ -194,7 +194,7 @@ resource "aws_iam_role_policy" "ecs_task" {
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${local.name_prefix}"
   retention_in_days = 30
-  
+
 
   tags = var.tags
 }
